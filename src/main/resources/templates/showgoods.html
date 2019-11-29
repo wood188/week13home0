@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!--easyUi-->
+    <link rel="stylesheet" type="text/css" th:href="@{/jquery-easyui-1.7.0/themes/default/easyui.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/jquery-easyui-1.7.0/themes/icon.css}">
+    <script type="text/javascript" th:src="@{/jquery-3.4.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-easyui-1.7.0/jquery.easyui.min.js}"></script>
+    <!--bootstrop-->
+    <link rel="stylesheet" type="text/css" th:href="@{/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+
+<table id="dg" title="商品展示页面" class="easyui-datagrid" style="width:100%;height:600px"
+       url="/goods/showall1"
+       toolbar="#toolbar"
+       rownumbers="true" fitColumns="true" singleSelect="true">
+    <thead>
+    <tr>
+        <th field="gname" width="50">商品名称</th>
+        <th field="gprice" width="50">商品价格</th>
+        <th field="gimg" width="50">商品图片</th>
+        <th field="gcreatetime" width="50">上架时间</th>
+        <th field="gstatus" width="50">商品状态</th>
+        <th field="gproperty" width="50">商品属性</th>
+    </tr>
+    </thead>
+</table>
+<div id="toolbar">
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">添加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editUser()">修改</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyUser()">删除</a>
+</div>
+<!--添加修改-->
+<div id="dlg" class="easyui-dialog" style="width:400px;height:280px;padding:10px 20px"
+     closed="true" buttons="#dlg-buttons">
+    <div class="ftitle">商品信息录入</div>
+    <form id="fm" method="post" enctype="multipart/form-data">
+        <input name="gimg" type="hidden" class="easyui-validatebox"/>
+        <div class="fitem">
+            <label>商品名称:</label>
+            <input name="gname" class="easyui-validatebox" required="true"/>
+        </div>
+        <div class="fitem">
+            <label>商品价格:</label>
+            <input name="gprice" class="easyui-validatebox" required="true"/>
+        </div>
+        <div class="fitem">
+        <label>商品图片:</label>
+        <input name="file" type="file" class="easyui-validatebox" />
+    </div>
+        <div class="fitem">
+            <label>上架时间:</label>
+            <input name="gcreatetime" type="Date" class="easyui-validatebox" required="true"/>
+        </div>
+        <div class="fitem">
+            <label>商品状态:</label>
+            <input name="gstatus" class="easyui-validatebox" required="true"/>
+        </div>
+        <div class="fitem">
+            <label>商品属性:</label>
+            <input name="gproperty" class="easyui-validatebox" required="true"/>
+        </div>
+
+    </form>
+</div>
+<div id="dlg-buttons">
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveUser()">确定</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel"
+       onclick="javascript:$('#dlg').dialog('close')">取消</a>
+</div>
+<script type="text/javascript">
+    var url;
+/*增加*/
+    function newUser() {
+        $('#dlg').dialog('open').dialog('center').dialog('setTitle', 'New User');
+        $('#fm').form('clear');
+        url = '/goods/goodsadd';
+    }
+/*修改*/
+    function editUser() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $('#dlg').dialog('open').dialog('center').dialog('setTitle', 'Edit User');
+            $('#fm').form('load', row);
+            url = '/goods/goodsupdate?gid=' + row.gid;
+        }
+    }
+
+    function saveUser() {
+        $('#fm').form('submit', {
+            url: url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (result) {
+                var result = eval('(' + result + ')');
+                if (result.errorMsg) {
+                    $.messager.show({
+                        title: 'Error',
+                        msg: result.errorMsg
+                    });
+                } else {
+                    $('#dlg').dialog('close');		// close the dialog
+                    $('#dg').datagrid('reload');	// reload the user data
+                }
+            }
+        });
+    }
+
+    function destroyUser() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('Confirm', '请点击确定删除?', function (r) {
+                if (r) {
+                    $.post('/goods/goodsdelete', {gid: row.gid}, function (result) {
+                        if (result.success) {
+                            $('#dg').datagrid('reload');	// reload the user data
+                        } else {
+                            $.messager.show({	// show error messageg
+                                title: 'Error',
+                                msg: result.errorMsg
+                            });g
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    }
+
+</script>
+<script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>
